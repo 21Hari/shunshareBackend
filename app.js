@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3');
 const path = require('path');
 const cors = require("cors");
 app.use(cors());
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const dbpath = path.join(__dirname, 'shunshare.db');
 app.use(express.json());
 
@@ -68,12 +68,12 @@ intializeDBAndServer();
 
 app.post("/seed", async (req, res) => {
     try {
-        
+
         await db.run(`DELETE FROM customers`);
         await db.run(`DELETE FROM products`);
         await db.run(`DELETE FROM orders`);
 
-       
+
         const customersData = [
             ["Hari", "hari@gmail.com", "South", "Premium"],
             ["Anita", "anita@gmail.com", "North", "Regular"],
@@ -128,7 +128,7 @@ app.post("/seed", async (req, res) => {
         for (let i = 0; i < 10; i++) {
             const customerId = customerIds[i];
             const productId = productIds[i];
-            const quantity = Math.floor(Math.random() * 5) + 1; 
+            const quantity = Math.floor(Math.random() * 5) + 1;
             const totalAmount = quantity * (await db.get(`SELECT price FROM products WHERE id = ?`, [productId])).price;
 
             await db.run(
@@ -152,7 +152,7 @@ app.post("/reports", async (req, res) => {
             return res.status(400).json({ error: "startDate and endDate are required." });
         }
 
-        
+
         const orders = await db.all(
             `SELECT * FROM orders WHERE orderDate BETWEEN ? AND ?`,
             [startDate, endDate]
@@ -162,7 +162,7 @@ app.post("/reports", async (req, res) => {
         const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
         const avgOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
 
-        
+
         const topProducts = await db.all(`
       SELECT products.name, SUM(orders.quantity) AS count
       FROM orders
@@ -173,7 +173,7 @@ app.post("/reports", async (req, res) => {
       LIMIT 5
     `, [startDate, endDate]);
 
-      
+
         const topCustomers = await db.all(`
       SELECT customers.name, SUM(orders.totalAmount) AS spend
       FROM orders
@@ -184,7 +184,7 @@ app.post("/reports", async (req, res) => {
       LIMIT 5
     `, [startDate, endDate]);
 
-        
+
         const result = await db.run(
             `INSERT INTO analytics_reports 
       (startDate, endDate, totalOrders, totalRevenue, avgOrderValue, topProducts, topCustomers)
@@ -200,10 +200,10 @@ app.post("/reports", async (req, res) => {
             ]
         );
 
-      
+
         const report = await db.get(`SELECT * FROM analytics_reports WHERE id = ?`, [result.lastID]);
 
-        
+
         report.topProducts = report.topProducts ? JSON.parse(report.topProducts) : [];
         report.topCustomers = report.topCustomers ? JSON.parse(report.topCustomers) : [];
 
@@ -221,7 +221,7 @@ app.get("/reports", async (req, res) => {
             `SELECT * FROM analytics_reports ORDER BY createdAt DESC`
         );
 
-       
+
         const formattedReports = reports.map((r) => ({
             ...r,
             topProducts: r.topProducts ? JSON.parse(r.topProducts) : [],
