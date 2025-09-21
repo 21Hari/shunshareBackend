@@ -57,7 +57,7 @@ const intializeDBAndServer = async () => {
     );
   `);
         app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
+            console.log(`Server is running on ${PORT}`);
         });
     } catch (error) {
         console.log(`DB Error: ${error.message}`);
