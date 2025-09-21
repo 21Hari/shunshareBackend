@@ -1,0 +1,15 @@
+POST http://localhost:3000/seed
+
+
+###
+POST http://localhost:3000/reports
+Content-Type: application/json
+
+{
+  "startDate": "2024-05-01",
+  "endDate": "2024-05-31"
+}
+
+###
+
+GET http://localhost:3000/reports
